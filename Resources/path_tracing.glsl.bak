@@ -35,10 +35,10 @@ uniform int uSamples;
 #define HALF_PI (PI / 2.0)
 #define FAR_DISTANCE 1000000.0
 #define MAX_DEPTH 10
-#define N_IN 1.5    
-#define N_OUT 1.0   
+#define N_IN 1.5    // glass refractive index
+#define N_OUT 1.0   // air refractive index
 
-
+// Scene object counts
 #define SPHERE_COUNT 3
 #define BOX_COUNT 9
 
@@ -65,32 +65,32 @@ vec3 randomHemisphereDirection(vec3 normal, float seed) {
     return dot(dir, normal) < 0.0 ? -dir : dir;
 }
 
-
+// Fresnel Schlick approximation by Christophe Schlick
 float FresnelSchlick(float nIn, float nOut, vec3 direction, vec3 normal) {
     float R0 = ((nOut - nIn) * (nOut - nIn)) / ((nOut + nIn) * (nOut + nIn));
     return R0 + (1.0 - R0) * pow(1.0 - abs(dot(direction, normal)), 5.0);
 }
 
-
+// Ideal refraction with total internal reflection fallback
 vec3 IdealRefract(vec3 direction, vec3 normal, float nIn, float nOut) {
     float cosTheta = dot(-direction, normal);
     float eta = cosTheta > 0.0 ? (nOut / nIn) : (nIn / nOut);
     vec3 n = cosTheta > 0.0 ? normal : -normal;
     vec3 refr = refract(direction, n, eta);
-    
+    // total internal reflection
     if (length(refr) == 0.0) return reflect(direction, n);
     return refr;
 }
 
-
+// decide refraction vs reflection based on Fresnel only
 bool IsRefracted(float r, vec3 direction, vec3 normal, float opacity, float nIn, float nOut) {
     float fresnel = FresnelSchlick(nIn, nOut, direction, normal);
     return (opacity > 0.0) && (r > fresnel);
 }
 
-
+// Initialize scene objects
 void initScene() {
-    
+    // Initialize spheres
     spheres[0].position = vec3(2.5, 1.5, -1.5);
     spheres[1].position = vec3(-2.5, 2.5, -1.0);
     spheres[2].position = vec3(0.5, -4.0, 3.0);
@@ -103,11 +103,11 @@ void initScene() {
     spheres[1].material.roughness = 0.8;
     spheres[2].material.roughness = 0.0;
     
-    spheres[0].material.opacity = 1.0;          
+    spheres[0].material.opacity = 1.0;          // full transparency for glass
     spheres[1].material.opacity = 0.0;
     spheres[2].material.opacity = 1.0;
     
-    spheres[0].material.reflectance = vec3(0.04); 
+    spheres[0].material.reflectance = vec3(0.04); // R0 для стекла, минимальное отражение при нормальном падении
     spheres[1].material.reflectance = vec3(1.0, 0.4, 0.0);
     spheres[2].material.reflectance = vec3(1.0, 1.0, 1.0);
     
@@ -115,8 +115,8 @@ void initScene() {
     spheres[1].material.emmitance = vec3(0.0);
     spheres[2].material.emmitance = vec3(0.0);
 
-    
-    
+    // Initialize boxes (walls and objects)
+    // Top wall
     boxes[0].material.roughness = 0.5;
     boxes[0].material.opacity = 0.0;
     boxes[0].material.emmitance = vec3(0.0);
@@ -129,7 +129,7 @@ void initScene() {
         0.0, 0.0, 1.0
     );
     
-    
+    // Bottom wall
     boxes[1].material.roughness = 0.9;
     boxes[1].material.opacity = 1.0;
     boxes[1].material.emmitance = vec3(0.0);
@@ -142,7 +142,7 @@ void initScene() {
         0.0, 0.0, 1.0
     );
     
-    
+    // Right wall - green
     boxes[2].material.roughness = 0.5;
     boxes[2].material.opacity = 0.0;
     boxes[2].material.emmitance = vec3(0.0);
@@ -155,7 +155,7 @@ void initScene() {
         0.0, 0.0, 1.0
     );
     
-    
+    // Left wall - red
     boxes[3].material.roughness = 0.5;
     boxes[3].material.opacity = 0.0;
     boxes[3].material.emmitance = vec3(0.0);
@@ -168,7 +168,7 @@ void initScene() {
         0.0, 0.0, 1.0
     );
     
-    
+    // Back wall
     boxes[4].material.roughness = 0.5;
     boxes[4].material.opacity = 0.0;
     boxes[4].material.emmitance = vec3(0.0);
@@ -181,7 +181,7 @@ void initScene() {
         0.0, 1.0, 0.0
     );
     
-    
+    // Front wall
     boxes[8].material.roughness = 0.5;
     boxes[8].material.opacity = 0.0;
     boxes[8].material.emmitance = vec3(0.0);
@@ -194,7 +194,7 @@ void initScene() {
         0.0, 1.0, 0.0
     );
 
-    
+    // Light source
     boxes[5].material.roughness = 0.0;
     boxes[5].material.opacity = 0.0;
     boxes[5].material.emmitance = vec3(6.0);
@@ -207,11 +207,11 @@ void initScene() {
         0.0, 0.0, 1.0
     );
     
-    
+    // Box 1
     boxes[6].material.roughness = 0.0;
     boxes[6].material.opacity = 1.0;
     boxes[6].material.emmitance = vec3(0.0);
-    boxes[6].material.reflectance = vec3(0.0);
+    boxes[6].material.reflectance = vec3(0);
     boxes[6].halfSize = vec3(1.5, 3.0, 1.5);
     boxes[6].position = vec3(-2.0, -2.0, -0.0);
     boxes[6].rotation = mat3(
@@ -220,7 +220,7 @@ void initScene() {
         -0.7, 0.0, 0.7
     );
     
-    
+    // Box 2
     boxes[7].material.roughness = 0.5;
     boxes[7].material.opacity = 0.0;
     boxes[7].material.emmitance = vec3(0.0);
@@ -234,7 +234,7 @@ void initScene() {
     );
 }
 
-
+// Ray-sphere intersection test
 float intersectSphere(vec3 origin, vec3 direction, Sphere sphere) {
     vec3 oc = origin - sphere.position;
     float b = dot(oc, direction);
@@ -248,7 +248,7 @@ float intersectSphere(vec3 origin, vec3 direction, Sphere sphere) {
     return (t > 0.0) ? t : -1.0;
 }
 
-
+// Ray-box intersection test
 float intersectBox(vec3 origin, vec3 direction, Box box) {
     vec3 ro = (origin - box.position) * box.rotation;
     vec3 rd = direction * box.rotation;
@@ -281,25 +281,24 @@ vec3 getNormalBox(vec3 hitPoint, Box box) {
     float maxComp = max(max(absPoint.x, absPoint.y), absPoint.z);
     
     if (absPoint.x == maxComp) {
-        return box.rotation * vec3(sign(localPoint.x), 0.0, 0.0);
+        return box.rotation * vec3(sign(localPoint.x), 0, 0);
     } else if (absPoint.y == maxComp) {
-        return box.rotation * vec3(0.0, sign(localPoint.y), 0.0);
+        return box.rotation * vec3(0, sign(localPoint.y), 0);
     } else {
-        return box.rotation * vec3(0.0, 0.0, sign(localPoint.z));
+        return box.rotation * vec3(0, 0, sign(localPoint.z));
     }
 }
 
-
+// Trace a ray through the scene
 vec3 traceRay(vec3 origin, vec3 direction, float seed) {
     vec3 accumulatedLight = vec3(0.0);
     vec3 rayColor = vec3(1.0);
-    
     for (int depth = 0; depth < MAX_DEPTH; depth++) {
         float closestT = FAR_DISTANCE;
-        int hitType = -1;  
+        int hitType = -1;  // -1 = miss, 0 = sphere, 1 = box
         int hitIndex = -1;
         
-        
+        // Check all spheres
         for (int i = 0; i < SPHERE_COUNT; i++) {
             float t = intersectSphere(origin, direction, spheres[i]);
             if (t > 0.0 && t < closestT) {
@@ -309,7 +308,7 @@ vec3 traceRay(vec3 origin, vec3 direction, float seed) {
             }
         }
         
-        
+        // Check all boxes
         for (int i = 0; i < BOX_COUNT; i++) {
             float t = intersectBox(origin, direction, boxes[i]);
             if (t > 0.0 && t < closestT) {
@@ -319,28 +318,28 @@ vec3 traceRay(vec3 origin, vec3 direction, float seed) {
             }
         }
         
-        
+        // If we didn't hit anything, break
         if (hitType == -1) {
             break;
         }
         
-        
+        // Calculate the hit point
         vec3 hitPoint = origin + direction * closestT;
         vec3 normal;
         Material material;
         
-        if (hitType == 0) {  
+        if (hitType == 0) {  // Hit a sphere
             normal = getNormalSphere(hitPoint, spheres[hitIndex]);
             material = spheres[hitIndex].material;
-        } else {  
+        } else {  // Hit a box
             normal = getNormalBox(hitPoint, boxes[hitIndex]);
             material = boxes[hitIndex].material;
         }
         
-        
+        // Add emission
         accumulatedLight += rayColor * material.emmitance;
         
-        
+        // Update rayColor: for transparency use Fresnel mix, otherwise reflectance
         if (material.opacity > 0.0) {
             float fresnel = FresnelSchlick(N_IN, N_OUT, direction, normal);
             rayColor *= mix(vec3(1.0), material.reflectance, fresnel);
@@ -348,9 +347,9 @@ vec3 traceRay(vec3 origin, vec3 direction, float seed) {
             rayColor *= material.reflectance;
         }
         
-        
+        // Bounce the ray
         vec3 newDir;
-        
+        // Transparent materials: refraction or reflection
         if (material.opacity > 0.0) {
             float r = rand(vec2(seed, float(depth)));
             if (IsRefracted(r, direction, normal, material.opacity, N_IN, N_OUT)) {
@@ -359,41 +358,41 @@ vec3 traceRay(vec3 origin, vec3 direction, float seed) {
                 newDir = reflect(direction, normal);
             }
         }
-        
+        // Rough surfaces: diffuse + glossy reflection
         else if (material.roughness > 0.0) {
             vec3 randomDir = randomHemisphereDirection(normal, seed + float(depth) * 2.34);
             vec3 reflectDir = reflect(direction, normal);
             newDir = normalize(mix(reflectDir, randomDir, material.roughness));
         }
-        
+        // Perfect reflection
         else {
             newDir = reflect(direction, normal);
         }
 
-        
+        // Update the ray for the next iteration
         origin = hitPoint + normal * 0.001;
         direction = newDir;
         
-        
+        // Update random seed
         seed = seed * 1.61803398875 + 0.1;
     }
     
     return accumulatedLight;
 }
 
-
+// Generate a camera ray
 vec3 getCameraRay(vec2 uv) {
-    
+    // Calculate right and up vectors from camera
     vec3 viewDir = normalize(uDirection);
     vec3 rightDir = normalize(cross(viewDir, uUp));
     vec3 upDir = normalize(cross(rightDir, viewDir));
     
-    
+    // Calculate ray direction using lens model
     float focalLength = 1.0;
     float aspectRatio = uViewportSize.x / uViewportSize.y;
     float scale = tan(uFOV * 0.5);
     
-    vec2 xy = uv * 2.0 - 1.0;  
+    vec2 xy = uv * 2.0 - 1.0;  // Transform to -1 to +1 range
     xy.x *= aspectRatio;
     
     vec3 rayDir = normalize(viewDir * focalLength + rightDir * (xy.x * scale) + upDir * (xy.y * scale));
@@ -402,33 +401,33 @@ vec3 getCameraRay(vec2 uv) {
 }
 
 void main() {
-    
+    // Initialize the scene
     initScene();
     
     vec3 finalColor = vec3(0.0);
     float seed = uTime + TexCoord.x * 1000.0 + TexCoord.y * 100.0;
     
-    
+    // Sample multiple rays for anti-aliasing and soft-effects
     for (int i = 0; i < uSamples; i++) {
-        
+        // Jitter the pixel position slightly for anti-aliasing
         vec2 jitteredCoord = TexCoord + vec2(
             rand(vec2(seed, TexCoord.x)) / uViewportSize.x,
             rand(vec2(TexCoord.y, seed)) / uViewportSize.y
         ) * 0.5;
         
-        
+        // Get ray direction from camera
         vec3 rayDir = getCameraRay(jitteredCoord);
         
-        
+        // Trace the ray and accumulate color
         finalColor += traceRay(uPosition, rayDir, seed + float(i));
         
-        
+        // Update seed
         seed = seed * 1.61803398875 + 0.1;
     }
     
-    
+    // Average the samples
     finalColor /= float(uSamples);
     
-    
+    // Output final color
     OutColor = vec4(finalColor, 1.0);
 }
