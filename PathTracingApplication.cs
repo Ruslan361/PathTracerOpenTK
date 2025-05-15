@@ -300,9 +300,9 @@ namespace PathTracerOpenTK
                     spheres[1].radius = 1.0;
                     spheres[2].radius = 1.0;
                     
-                    spheres[0].material.roughness = 1.0;
+                    spheres[0].material.roughness = 0.8;
                     spheres[1].material.roughness = 0.8;
-                    spheres[2].material.roughness = 1.0;
+                    spheres[2].material.roughness = 0.8;
                     
                     spheres[0].material.opacity = 0.0;
                     spheres[1].material.opacity = 0.0;
@@ -318,7 +318,7 @@ namespace PathTracerOpenTK
                 
                     // Initialize boxes (walls and objects)
                     // Top wall
-                    boxes[0].material.roughness = 0.0;
+                    boxes[0].material.roughness = 0.5;
                     boxes[0].material.opacity = 0.0;
                     boxes[0].material.emmitance = vec3(0.0);
                     boxes[0].material.reflectance = vec3(1.0, 1.0, 1.0);
@@ -331,10 +331,10 @@ namespace PathTracerOpenTK
                     );
                     
                     // Bottom wall
-                    boxes[1].material.roughness = 0.3;
-                    boxes[1].material.opacity = 0.0;
+                    boxes[1].material.roughness = 0.9;
+                    boxes[1].material.opacity = 1.0;
                     boxes[1].material.emmitance = vec3(0.0);
-                    boxes[1].material.reflectance = vec3(1.0, 1.0, 1.0);
+                    boxes[1].material.reflectance = vec3(0.5, 0.5, 0.5);
                     boxes[1].halfSize = vec3(5.0, 0.5, 5.0);
                     boxes[1].position = vec3(0.0, -5.5, 0.0);
                     boxes[1].rotation = mat3(
@@ -344,10 +344,10 @@ namespace PathTracerOpenTK
                     );
                     
                     // Right wall - green
-                    boxes[2].material.roughness = 0.0;
+                    boxes[2].material.roughness = 0.5;
                     boxes[2].material.opacity = 0.0;
                     boxes[2].material.emmitance = vec3(0.0);
-                    boxes[2].material.reflectance = vec3(0.0, 1.0, 0.0);
+                    boxes[2].material.reflectance = vec3(0.0, 0.5, 0.0);
                     boxes[2].halfSize = vec3(5.0, 0.5, 5.0);
                     boxes[2].position = vec3(5.5, 0.0, 0.0);
                     boxes[2].rotation = mat3(
@@ -357,10 +357,10 @@ namespace PathTracerOpenTK
                     );
                     
                     // Left wall - red
-                    boxes[3].material.roughness = 0.0;
+                    boxes[3].material.roughness = 0.5;
                     boxes[3].material.opacity = 0.0;
                     boxes[3].material.emmitance = vec3(0.0);
-                    boxes[3].material.reflectance = vec3(1.0, 0.0, 0.0);
+                    boxes[3].material.reflectance = vec3(0.5, 0.0, 0.0);
                     boxes[3].halfSize = vec3(5.0, 0.5, 5.0);
                     boxes[3].position = vec3(-5.5, 0.0, 0.0);
                     boxes[3].rotation = mat3(
@@ -370,10 +370,10 @@ namespace PathTracerOpenTK
                     );
                     
                     // Back wall
-                    boxes[4].material.roughness = 0.0;
+                    boxes[4].material.roughness = 0.5;
                     boxes[4].material.opacity = 0.0;
                     boxes[4].material.emmitance = vec3(0.0);
-                    boxes[4].material.reflectance = vec3(1.0, 1.0, 1.0);
+                    boxes[4].material.reflectance = vec3(0.5, 0.5, 0.5);
                     boxes[4].halfSize = vec3(5.0, 0.5, 5.0);
                     boxes[4].position = vec3(0.0, 0.0, -5.5);
                     boxes[4].rotation = mat3(
@@ -396,10 +396,10 @@ namespace PathTracerOpenTK
                     );
                     
                     // Box 1
-                    boxes[6].material.roughness = 0.0;
+                    boxes[6].material.roughness = 0.5;
                     boxes[6].material.opacity = 0.0;
                     boxes[6].material.emmitance = vec3(0.0);
-                    boxes[6].material.reflectance = vec3(1.0);
+                    boxes[6].material.reflectance = vec3(0.125);
                     boxes[6].halfSize = vec3(1.5, 3.0, 1.5);
                     boxes[6].position = vec3(-2.0, -2.0, -0.0);
                     boxes[6].rotation = mat3(
@@ -409,10 +409,10 @@ namespace PathTracerOpenTK
                     );
                     
                     // Box 2
-                    boxes[7].material.roughness = 0.0;
+                    boxes[7].material.roughness = 0.5;
                     boxes[7].material.opacity = 0.0;
                     boxes[7].material.emmitance = vec3(0.0);
-                    boxes[7].material.reflectance = vec3(1.0);
+                    boxes[7].material.reflectance = vec3(0.125);
                     boxes[7].halfSize = vec3(1.0, 1.5, 1.0);
                     boxes[7].position = vec3(2.5, -3.5, -0.0);
                     boxes[7].rotation = mat3(
