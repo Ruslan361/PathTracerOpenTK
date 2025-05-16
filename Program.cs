@@ -21,7 +21,9 @@ namespace PathTracerOpenTK
 
             using (var game = new PathTracingApplication(GameWindowSettings.Default, nativeWindowSettings))
             {
+                System.Environment.SetEnvironmentVariable("CUDA_VISIBLE_DEVICES", "0");
                 game.Run();
+
             }
         }
     }

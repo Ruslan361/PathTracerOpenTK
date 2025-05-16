@@ -50,7 +50,7 @@ namespace PathTracerOpenTK
             camera.Direction = -Vector3.UnitZ;
             camera.MoveSpeed = 5.0f;
             camera.RotateSpeed = 5.0f;
-            camera.Fov = 60.0f;            // Create shaders
+            camera.Fov = 70.0f;  // Увеличиваем угол обзора для лучшей видимости            // Create shaders
             rayTracingShader = CreateShader("Resources/path_tracing.glsl");
             postProcessShader = CreateShader("Resources/post_process.glsl");
 
@@ -233,13 +233,13 @@ namespace PathTracerOpenTK
                 oldCameraDirection == camera.Direction &&
                 oldFOV == camera.Fov;
 
-            int raySamples = accumulateImage ? 16 : 4;
+            int raySamples = accumulateImage ? 64 : 4;
             
             // Render to accumulation texture using ray tracing shader
             rayTracingShader.Use();
             rayTracingShader.SetInt("uSamples", raySamples);
             rayTracingShader.SetFloat("uTime", (float)timer.Elapsed.TotalSeconds);
-            rayTracingShader.SetVector2("uViewportSize", new Vector2(Size.X, Size.Y));
+            rayTracingShader.SetVector2("uViewportSize", new Vector2(Size.X/256, Size.Y/256));
             rayTracingShader.SetVector3("uPosition", camera.Position);
             rayTracingShader.SetVector3("uDirection", camera.Direction);
             rayTracingShader.SetVector3("uUp", camera.Up);
