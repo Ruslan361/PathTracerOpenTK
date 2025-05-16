@@ -239,7 +239,7 @@ namespace PathTracerOpenTK
             rayTracingShader.Use();
             rayTracingShader.SetInt("uSamples", raySamples);
             rayTracingShader.SetFloat("uTime", (float)timer.Elapsed.TotalSeconds);
-            rayTracingShader.SetVector2("uViewportSize", new Vector2(Size.X/256, Size.Y/256));
+            rayTracingShader.SetVector2("uViewportSize", new Vector2(Size.X, Size.Y));
             rayTracingShader.SetVector3("uPosition", camera.Position);
             rayTracingShader.SetVector3("uDirection", camera.Direction);
             rayTracingShader.SetVector3("uUp", camera.Up);

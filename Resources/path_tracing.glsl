@@ -1,5 +1,4 @@
 #version 450 core
-
 in vec2 TexCoord;
 out vec4 OutColor;
 
@@ -11,17 +10,19 @@ struct Material
     float opacity;
 };
 
-struct Sphere {
-    Material material;
-    vec3 position;
-    float radius;
-};
-
-struct Box {
+struct Box
+{
     Material material;
     vec3 halfSize;
     mat3 rotation;
     vec3 position;
+};
+
+struct Sphere
+{
+    Material material;
+    vec3 position;
+    float radius;
 };
 
 struct Tetrahedron {
@@ -43,14 +44,13 @@ uniform int uSamples;
 #define PI 3.1415926535
 #define HALF_PI (PI / 2.0)
 #define FAR_DISTANCE 1000000.0
-#define MAX_DEPTH 5
-#define N_IN 1.5    
-#define N_OUT 1.0   
 
-
+#define MAX_DEPTH 8
 #define SPHERE_COUNT 3
-#define BOX_COUNT 9
+#define BOX_COUNT 8
 #define TETRAHEDRON_COUNT 1
+#define N_IN 1.0 // Air
+#define N_OUT 1.5 // Glass
 
 Sphere spheres[SPHERE_COUNT];
 Box boxes[BOX_COUNT];
@@ -61,143 +61,127 @@ void InitializeScene()
     spheres[0].position = vec3(2.5, 1.5, -1.5);
     spheres[1].position = vec3(-2.5, 2.5, -1.0);
     spheres[2].position = vec3(0.5, -4.0, 3.0);
-    spheres[0].radius = 1.5;
+    spheres[0].radius = 2.0;
     spheres[1].radius = 1.0;
     spheres[2].radius = 1.0;
-    spheres[0].material.roughness = 0.0;  
+    spheres[0].material.roughness = 1.0;
     spheres[1].material.roughness = 0.8;
-    spheres[2].material.roughness = 0.0;
-    spheres[0].material.opacity = 1.0;    
+    spheres[2].material.roughness = 1.0;
+    spheres[0].material.opacity = 0.0;
     spheres[1].material.opacity = 0.0;
-    spheres[2].material.opacity = 1.0;
-    spheres[0].material.reflectance = vec3(0.04);  
+    spheres[2].material.opacity = 0.8;
+    spheres[0].material.reflectance = vec3(1.0, 0.0, 0.0);
     spheres[1].material.reflectance = vec3(1.0, 0.4, 0.0);
     spheres[2].material.reflectance = vec3(1.0, 1.0, 1.0);
     spheres[0].material.emmitance = vec3(0.0);
     spheres[1].material.emmitance = vec3(0.0);
     spheres[2].material.emmitance = vec3(0.0);
 
-    
-    boxes[0].material.roughness = 0.5;
-    boxes[0].material.opacity = 0.0;
+    // up
+    boxes[0].material.roughness = 0.0;
     boxes[0].material.emmitance = vec3(0.0);
     boxes[0].material.reflectance = vec3(1.0, 1.0, 1.0);
-    boxes[0].halfSize = vec3(10.0, 0.5, 10.0);  
-    boxes[0].position = vec3(0.0, 10.5, 0.0);   
+    boxes[0].halfSize = vec3(7.5, 0.5, 7.5); // Increased size
+    boxes[0].position = vec3(0.0, 8.0, 0.0);   // Moved up
     boxes[0].rotation = mat3(
         1.0, 0.0, 0.0,
         0.0, 1.0, 0.0,
         0.0, 0.0, 1.0
     );
-    
-    
-    boxes[1].material.roughness = 0.9;
+
+    // down
+    boxes[1].material.roughness = 0.3;
     boxes[1].material.opacity = 0.0;
     boxes[1].material.emmitance = vec3(0.0);
-    boxes[1].material.reflectance = vec3(0.5, 0.5, 0.5);
-    boxes[1].halfSize = vec3(10.0, 0.5, 10.0);  
-    boxes[1].position = vec3(0.0, -10.5, 0.0);  
+    boxes[1].material.reflectance = vec3(1.0, 1.0, 1.0);
+    boxes[1].halfSize = vec3(7.5, 0.5, 7.5);  // Increased size
+    boxes[1].position = vec3(0.0, -8.0, 0.0); // Moved down
     boxes[1].rotation = mat3(
         1.0, 0.0, 0.0,
         0.0, 1.0, 0.0,
         0.0, 0.0, 1.0
     );
-    
-    
-    boxes[2].material.roughness = 0.5;
+
+    // right
+    boxes[2].material.roughness = 1.0;
     boxes[2].material.opacity = 0.0;
     boxes[2].material.emmitance = vec3(0.0);
-    boxes[2].material.reflectance = vec3(0.0, 0.5, 0.0);
-    boxes[2].halfSize = vec3(10.0, 0.5, 10.0);  
-    boxes[2].position = vec3(10.5, 0.0, 0.0);   
+    boxes[2].material.reflectance = vec3(0.125, 1.0, 0.125);
+    boxes[2].halfSize = vec3(7.5, 0.5, 7.5); // Increased depth/height for wall
+    boxes[2].position = vec3(8.0, 0.0, 0.0);   // Moved right
     boxes[2].rotation = mat3(
         0.0, 1.0, 0.0,
         -1.0, 0.0, 0.0,
         0.0, 0.0, 1.0
     );
-    
-    
-    boxes[3].material.roughness = 0.5;
+
+    // left
+    boxes[3].material.roughness = 1.0;
     boxes[3].material.opacity = 0.0;
     boxes[3].material.emmitance = vec3(0.0);
-    boxes[3].material.reflectance = vec3(0.5, 0.0, 0.0);
-    boxes[3].halfSize = vec3(10.0, 0.5, 10.0);  
-    boxes[3].position = vec3(-10.5, 0.0, 0.0);  
+    boxes[3].material.reflectance = vec3(1.0, 1.0, 1.0);
+    boxes[3].halfSize = vec3(7.5, 0.5, 7.5);
+    boxes[3].position = vec3(-8, 0.0, 0.0);
     boxes[3].rotation = mat3(
         0.0, 1.0, 0.0,
         -1.0, 0.0, 0.0,
         0.0, 0.0, 1.0
     );
-    
-    
-    boxes[4].material.roughness = 0.5;
+
+    // back
+    boxes[4].material.roughness = 0.0;
     boxes[4].material.opacity = 0.0;
     boxes[4].material.emmitance = vec3(0.0);
-    boxes[4].material.reflectance = vec3(0.5, 0.5, 0.5);
-    boxes[4].halfSize = vec3(10.0, 0.5, 10.0);  
-    boxes[4].position = vec3(0.0, 0.0, -10.5);  
+    boxes[4].material.reflectance = vec3(1.0, 1.0, 1.0);
+    boxes[4].halfSize = vec3(7.5, 0.5, 7.5); // Increased width/height for wall
+    boxes[4].position = vec3(0.0, 0.0, -8.0);  // Moved back
     boxes[4].rotation = mat3(
         1.0, 0.0, 0.0,
         0.0, 0.0, 1.0,
         0.0, 1.0, 0.0
     );
 
-    
-    boxes[8].material.roughness = 0.5;
-    boxes[8].material.opacity = 0.0;
-    boxes[8].material.emmitance = vec3(0.0);
-    boxes[8].material.reflectance = vec3(0.5, 0.5, 0.5);
-    boxes[8].halfSize = vec3(10.0, 0.5, 10.0);  
-    boxes[8].position = vec3(0.0, 0.0, 10.5);   
-    boxes[8].rotation = mat3(
-        1.0, 0.0, 0.0,
-        0.0, 0.0, 1.0,
-        0.0, 1.0, 0.0
-    );
-
-    
+    // light source
     boxes[5].material.roughness = 0.0;
     boxes[5].material.opacity = 0.0;
-    boxes[5].material.emmitance = vec3(3.0);  
+    boxes[5].material.emmitance = vec3(1.0, 1.0, 0.8);
     boxes[5].material.reflectance = vec3(1.0);
-    boxes[5].halfSize = vec3(3.5, 0.2, 3.5);  
-    boxes[5].position = vec3(0.0, 9.8, 0.0);  
+    boxes[5].halfSize = vec3(2.5, 0.2, 2.5);
+    boxes[5].position = vec3(0.0, 7.2, 0.0); // Adjusted Y position for new ceiling
     boxes[5].rotation = mat3(
         1.0, 0.0, 0.0,
         0.0, 1.0, 0.0,
         0.0, 0.0, 1.0
     );
-    
-    
+
+    // boxes
     boxes[6].material.roughness = 0.0;
     boxes[6].material.opacity = 0.0;
     boxes[6].material.emmitance = vec3(0.0);
-    boxes[6].material.reflectance = vec3(0.5, 0.5, 1.0);  
-    boxes[6].halfSize = vec3(1.5, 3.0, 1.5);
-    boxes[6].position = vec3(-4.0, -7.0, -2.0);  
+    boxes[6].material.reflectance = vec3(1.0, 1.0, 0.0);
+    boxes[6].halfSize = vec3(3.0, 1.5, 3.0);
+    boxes[6].position = vec3(-2.0, -6.5, -0.0);
     boxes[6].rotation = mat3(
         0.7, 0.0, 0.7,
         0.0, 1.0, 0.0,
         -0.7, 0.0, 0.7
     );
-    
-    
-    boxes[7].material.roughness = 0.5;
+    // boxes
+    boxes[7].material.roughness = 0.0;
     boxes[7].material.opacity = 0.0;
     boxes[7].material.emmitance = vec3(0.0);
-    boxes[7].material.reflectance = vec3(1.0, 0.5, 0.0);  
-    boxes[7].halfSize = vec3(1.5, 2.5, 1.5);
-    boxes[7].position = vec3(3.5, -7.5, 2.0);  
+    boxes[7].material.reflectance = vec3(1.0);
+    boxes[7].halfSize = vec3(1.0, 2, 1.0);
+    boxes[7].position = vec3(4.0, -6.0, -0.0);
     boxes[7].rotation = mat3(
         0.7, 0.0, 0.7,
         0.0, 1.0, 0.0,
         -0.7, 0.0, 0.7
     );
 
-    
-    float scale = 2.5;  
-    vec3 tetraPosition = vec3(0.0, -5.0, 0.0);  
-    
+    // Tetrahedron Initialization
+    float scale = 1.5;  
+    vec3 tetraPosition = vec3(0.0, -5.0, 0.0); // Adjusted for current scene
     
     float rotAngle = PI / 4.0;  
     mat3 rotY = mat3(
@@ -210,11 +194,12 @@ void InitializeScene()
     tetrahedrons[0].v1 = tetraPosition + rotY * vec3(scale, -scale, -scale);
     tetrahedrons[0].v2 = tetraPosition + rotY * vec3(0.0, scale * 1.5, 0.0);  
     tetrahedrons[0].v3 = tetraPosition + rotY * vec3(0.0, -scale, scale);
-    tetrahedrons[0].material.roughness = 0.1;    
-    tetrahedrons[0].material.opacity = 0.0;      
-    tetrahedrons[0].material.emmitance = vec3(0.0);
-    tetrahedrons[0].material.reflectance = vec3(0.8, 0.3, 0.2);  
+    tetrahedrons[0].material.roughness = 0.0;       
+    tetrahedrons[0].material.opacity = 0.0;        
+    tetrahedrons[0].material.emmitance = vec3(0.0); 
+    tetrahedrons[0].material.reflectance = vec3(1.0, 0.0, 1.0); 
 }
+
 float RandomNoise(vec2 co)
 {
     co *= fract(uTime * 12.343);
@@ -333,13 +318,11 @@ bool IntersectRayBox(vec3 origin, vec3 direction, Box box, out float fraction, o
     return true;
 }
 
-
 bool IntersectRayTriangle(vec3 origin, vec3 direction, vec3 v0, vec3 v1, vec3 v2, out float t, out vec3 norm) {
     vec3 e1 = v1 - v0;
     vec3 e2 = v2 - v0;
     vec3 pvec = cross(direction, e2);
     float det = dot(e1, pvec);
-    
     
     if (abs(det) < 0.0001) return false;
     
@@ -354,50 +337,56 @@ bool IntersectRayTriangle(vec3 origin, vec3 direction, vec3 v0, vec3 v1, vec3 v2
     
     if (v < 0.0 || u + v > 1.0) return false;
     
-    
     t = dot(e2, qvec) * invDet;
     
-    
-    if (t < 0.0) return false;
-    
+    if (t < 0.0001) return false; // Intersection must be in front
     
     norm = normalize(cross(e1, e2));
     
     return true;
 }
 
-
-
 bool IntersectRayTetrahedron(vec3 origin, vec3 direction, Tetrahedron tetrahedron, out float fraction, out vec3 normal) {
-    float t;
-    vec3 norm;
+    float t_temp;
+    vec3 norm_temp;
     
+    float closest_t = FAR_DISTANCE;
+    bool hit_found = false;
     
-    
-    if (IntersectRayTriangle(origin, direction, tetrahedron.v0, tetrahedron.v1, tetrahedron.v2, t, norm)) {
-        fraction = t;
-        normal = norm;
-        return true;
+    if (IntersectRayTriangle(origin, direction, tetrahedron.v0, tetrahedron.v1, tetrahedron.v2, t_temp, norm_temp)) {
+        if (t_temp > 0.0001 && t_temp < closest_t) {
+            closest_t = t_temp;
+            normal = norm_temp;
+            hit_found = true;
+        }
     }
     
-    
-    if (IntersectRayTriangle(origin, direction, tetrahedron.v0, tetrahedron.v1, tetrahedron.v3, t, norm)) {
-        fraction = t;
-        normal = norm;
-        return true;
+    if (IntersectRayTriangle(origin, direction, tetrahedron.v0, tetrahedron.v1, tetrahedron.v3, t_temp, norm_temp)) {
+        if (t_temp > 0.0001 && t_temp < closest_t) {
+            closest_t = t_temp;
+            normal = norm_temp;
+            hit_found = true;
+        }
     }
     
-    
-    if (IntersectRayTriangle(origin, direction, tetrahedron.v0, tetrahedron.v2, tetrahedron.v3, t, norm)) {
-        fraction = t;
-        normal = norm;
-        return true;
+    if (IntersectRayTriangle(origin, direction, tetrahedron.v0, tetrahedron.v2, tetrahedron.v3, t_temp, norm_temp)) {
+        if (t_temp > 0.0001 && t_temp < closest_t) {
+            closest_t = t_temp;
+            normal = norm_temp;
+            hit_found = true;
+        }
     }
     
+    if (IntersectRayTriangle(origin, direction, tetrahedron.v1, tetrahedron.v2, tetrahedron.v3, t_temp, norm_temp)) {
+        if (t_temp > 0.0001 && t_temp < closest_t) {
+            closest_t = t_temp;
+            normal = norm_temp;
+            hit_found = true;
+        }
+    }
     
-    if (IntersectRayTriangle(origin, direction, tetrahedron.v1, tetrahedron.v2, tetrahedron.v3, t, norm)) {
-        fraction = t;
-        normal = norm;
+    if (hit_found) {
+        fraction = closest_t;
         return true;
     }
     
@@ -424,7 +413,7 @@ bool CastRay(vec3 rayOrigin, vec3 rayDirection, out float fraction, out vec3 nor
     {
         float F;
         vec3 N;
-        if (IntersectRayBox(rayOrigin, rayDirection, boxes[i], F, N) && F < minDistance)
+        if (IntersectRayBox(rayOrigin, rayDirection, boxes[i], F, N) && F > 0.0001 && F < minDistance)
         {
             minDistance = F;
             normal = N;
@@ -436,7 +425,7 @@ bool CastRay(vec3 rayOrigin, vec3 rayDirection, out float fraction, out vec3 nor
     {
         float F;
         vec3 N;
-        if (IntersectRayTetrahedron(rayOrigin, rayDirection, tetrahedrons[i], F, N) && F < minDistance)
+        if (IntersectRayTetrahedron(rayOrigin, rayDirection, tetrahedrons[i], F, N) && F > 0.0001 && F < minDistance)
         {
             minDistance = F;
             normal = N;
