@@ -45,12 +45,12 @@ uniform int uSamples;
 #define HALF_PI (PI / 2.0)
 #define FAR_DISTANCE 1000000.0
 
-#define MAX_DEPTH 8
+#define MAX_DEPTH 10
 #define SPHERE_COUNT 3
 #define BOX_COUNT 8
 #define TETRAHEDRON_COUNT 1
-#define N_IN 1.0 // Air
-#define N_OUT 1.5 // Glass
+#define N_IN 0.95
+#define N_OUT 1.0
 
 Sphere spheres[SPHERE_COUNT];
 Box boxes[BOX_COUNT];
@@ -69,7 +69,7 @@ void InitializeScene()
     spheres[2].material.roughness = 1.0;
     spheres[0].material.opacity = 0.0;
     spheres[1].material.opacity = 0.0;
-    spheres[2].material.opacity = 0.8;
+    spheres[2].material.opacity = 1.0;
     spheres[0].material.reflectance = vec3(1.0, 0.0, 0.0);
     spheres[1].material.reflectance = vec3(1.0, 0.4, 0.0);
     spheres[2].material.reflectance = vec3(1.0, 1.0, 1.0);
@@ -144,7 +144,7 @@ void InitializeScene()
     // light source
     boxes[5].material.roughness = 0.0;
     boxes[5].material.opacity = 0.0;
-    boxes[5].material.emmitance = vec3(1.0, 1.0, 0.8);
+    boxes[5].material.emmitance = vec3(1.0, 2.0, 0.2);
     boxes[5].material.reflectance = vec3(1.0);
     boxes[5].halfSize = vec3(2.5, 0.2, 2.5);
     boxes[5].position = vec3(0.0, 7.2, 0.0); // Adjusted Y position for new ceiling
